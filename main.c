@@ -14,6 +14,7 @@
 #include "delay.h"
 #include "temp_sensor.h"
 #include "speaker.h"
+#include "ir.h"
 
 #define F_CPU 16000000UL
 
@@ -23,7 +24,7 @@
 
 // Defines
 #define LOCK_BUTTON 0 // TODO fill this in when value is found
-#define UNLOCK_BUTTON 0 // TODO fill this in when value is found
+#define UNLOCK_BUTTON 1 // TODO fill this in when value is found
 
 // Constants
 static const Tone UNLOCK_SOUND[] = {
@@ -39,9 +40,8 @@ static const Tone LOCK_SOUND[] = {
 };
 
 
-
 // Initialize variables to be used 
-static char buffer[BUFFER_SIZE];
+
 
 // File Scope helper methods
 static void play_sound(Tone sound[], int length);
@@ -62,7 +62,7 @@ enum events get_new_event (void);
 void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
     { action_LOCKED_UNLOCK, action_LOCKED_LOCK }, /* procedures for state 1 */
-    { action_UNLOCKED_UNCLOCK, UNLOCKED_LOCK } /* procedures for state 2 */
+    { action_UNLOCKED_UNCLOCK, action_UNLOCKED_LOCK } /* procedures for state 2 */
 
 };
 
@@ -89,11 +89,10 @@ int main() {
 
 	// --------------------IR Tests----------------------------
 	while(DEBUG == 2) {
-		lcd_print_num(50);
-		delay_1ms(2000);
-		lcd_print_num(100);
+		lcd_print_num(ir_get_code());
 		delay_1ms(2000);
 		lcd_clear();
+		delay_1ms(2000);
 	}
 	//-------------------------------------------------------------
 
@@ -152,17 +151,17 @@ void action_UNLOCKED_LOCK (void) {
 
 enum events get_new_event (void) {
 	uint32_t code = ir_get_code();
-	enum event;
+	new_event;
 	switch (code) {
 		case LOCK_BUTTON : 
-			event = LOCK;
+			new_event = LOCK;
 			break;
 		case UNLOCK_BUTTON : 
-			event = UNLOCK;
+			new_event = UNLOCK;
 			break;
 		default : // INVALID BUTTON
-			event = -1;	
+			new_event = -1;	
 	}
-    return event;
+    return new_event;
 }
 

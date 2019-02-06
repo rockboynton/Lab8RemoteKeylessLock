@@ -17,14 +17,14 @@
 static volatile GPIO* GPIOB = 0x40020400;
 
 // File scope helper methods
-static uint32_t ir_get_code_block();
+static uint32_t ir_get_code_no_block();
 
 void ir_init() {
     // Enable GPIOB in RCC_AHB1ENR
 	*(RCC_AHB1ENR) |= (1 << GPIOBEN);
     // Configure GPIOB pin 1 to analog mode
     GPIOB->MODER |= (0b11 << 2);
-
+    // TODO more stuff to enable reading from IR sensor
 }
 
 uint32_t ir_get_code() {
