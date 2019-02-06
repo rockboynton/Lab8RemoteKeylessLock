@@ -30,16 +30,18 @@ static const Tone UNLOCK[] = {
 	{A6, S}, 
 	{C0, S}, // C0 is inaudible, acts as a delay to seperate notes
     {A6,S},
-}
+};
 
 static const Tone LOCK[] = {
 	// {NOTE, DURATION}
 	{A6, S}, 
-}
+};
 
 // Initialize variables to be used 
 static char buffer[BUFFER_SIZE];
 
+// File Scope helper methods
+static void play_sound(Tone sound[], int length);
 
 
 // main
