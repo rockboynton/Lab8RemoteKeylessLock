@@ -30,8 +30,6 @@ void speaker_init();
 void play_tone(Tone * tone);
 
 
-
-
 // The following defines are from this instructable: 
 // https://www.instructables.com/id/How-to-easily-play-music-with-buzzer-on-arduino-Th/
 // NB: ALL NOTES DEFINED WITH STANDARD ENGLISH NAMES
