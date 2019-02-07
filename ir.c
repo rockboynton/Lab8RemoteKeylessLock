@@ -15,6 +15,7 @@
 #include "gpio.h"
 
 static volatile GPIO* GPIOB = 0x40020400;
+static volatile TIMER* TIM4 = TIM4_BASE;
 
 // File scope helper methods
 static uint32_t ir_get_code_no_block();
@@ -22,9 +23,23 @@ static uint32_t ir_get_code_no_block();
 void ir_init() {
     // Enable GPIOB in RCC_AHB1ENR
 	*(RCC_AHB1ENR) |= (1 << GPIOBEN);
-    // Configure GPIOB pin 1 to analog mode
-    GPIOB->MODER |= (0b11 << 2);
-    // TODO more stuff to enable reading from IR sensor
+
+     // Enable TIM4 in RCC_APB1ENR
+	*(RCC_APB1ENR) |= (1 << TIM4_EN);
+
+    // Configure GPIOB pin 2 to alternate function mode (TIM4)
+    GPIOB->MODER &= ~(0b11 << 4); // Clear mode bits for pin 2
+    GPIOB->MODER |= (ALTERNATE_FUNCTION << 4); // Set pin 2 to alternate function mode
+    GPIOB->AFRL &= ~(0xF << 16); // Clear alternate function bits for pin 4
+    GPIOB->AFRL |= (0x2 << 16); // Set alternate function to AF1 (TIM2_CH4)
+
+    // Enable Interrupts
+    *NVIC_ISER_0 |= (1 << 30);
+
+    TIM4->EGR |= 1; // Propogate new values from shadow registers
+
+    // ? TODO more stuff to enable reading from IR sensor
+
 }
 
 uint32_t ir_get_code() {
@@ -44,4 +59,8 @@ uint32_t ir_get_code() {
 static uint32_t ir_get_code_no_block() {
     //TODO
     return 0;
+}
+
+TIM4_IRQHandler(void) {
+    
 }

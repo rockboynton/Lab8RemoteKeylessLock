@@ -35,7 +35,6 @@ void speaker_init() {
 void play_tone(Tone* tone) {
 	// Set half-period count in TIM3_ARR and TIM3_CCR1
     uint32_t ticks = (uint32_t) (CLK_SPEED *  (1 / (*tone).note)) / 2.0;
-    // uint32_t ticks = (uint16_t) (CLK_SPEED/2) / (*tone).note)) / 2.0;
     TIM3->ARR = ticks;
     TIM3->CCR1 = ticks;
 

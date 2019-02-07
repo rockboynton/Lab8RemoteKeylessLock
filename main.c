@@ -79,7 +79,7 @@ int main() {
 	speaker_init();
 
 	// --------------------Speaker Tests----------------------------
-	while(DEBUG == 1) {
+	while(DEBUG == 1) { // Working
 		play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
 		delay_1ms(3000);
 		play_sound(LOCK_SOUND, (sizeof(LOCK_SOUND) / sizeof(LOCK_SOUND[0])));
@@ -88,14 +88,13 @@ int main() {
 	//-------------------------------------------------------------
 
 	// --------------------IR Tests----------------------------
-	while(DEBUG == 2) {
+	while(DEBUG == 2) { // Not yet working 
 		lcd_print_num(ir_get_code());
 		delay_1ms(2000);
 		lcd_clear();
 		delay_1ms(2000);
 	}
 	//-------------------------------------------------------------
-
 
 
 	// Main program 
