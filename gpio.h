@@ -40,7 +40,7 @@
 #define GPIOCEN 2
 #define ADC1EN  8
 #define TIM3_EN 1
-#define TIM4_EN 2
+#define TIM2_EN 0
 
 #define INPUT 0
 #define OUTPUT 1
