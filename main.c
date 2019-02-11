@@ -47,15 +47,15 @@ static const Tone LOCK_SOUND[] = {
 static void play_sound(Tone sound[], int length);
 
 /* Define the states and events.*/
-enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
-enum events { UNLOCK, LOCK, MAX_EVENTS } new_event;
+static enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
+static enum events { UNLOCK, LOCK, MAX_EVENTS } new_event;
 
 /* Provide the fuction prototypes for each action procedure.*/
-void action_LOCKED_UNLOCK (void);
-void action_LOCKED_LOCK (void);
-void action_UNLOCKED_UNCLOCK (void);
-void action_UNLOCKED_LOCK (void);
-enum events get_new_event (void);
+static void action_LOCKED_UNLOCK (void);
+static void action_LOCKED_LOCK (void);
+static void action_UNLOCKED_UNCLOCK (void);
+static void action_UNLOCKED_LOCK (void);
+static enum events get_new_event (void);
 
 /* Define the state/event lookup table. */
 
@@ -125,21 +125,21 @@ static void play_sound(Tone sound[], int length) {
 /* In an action procedure, you do whatever processing is required for the
 particular event in the particular state. */
 
-void action_LOCKED_UNLOCK (void) {
+static void action_LOCKED_UNLOCK (void) {
 	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
 	lcd_print_string("UNLOCKED");
 	current_state = UNLOCKED;
 }
 
-void action_LOCKED_LOCK (void) {
+static void action_LOCKED_LOCK (void) {
 	action_UNLOCKED_LOCK();
 }
 
-void action_UNLOCKED_UNCLOCK (void) {
+static void action_UNLOCKED_UNCLOCK (void) {
 	action_LOCKED_UNLOCK();
 }
 
-void action_UNLOCKED_LOCK (void) {
+static void action_UNLOCKED_LOCK (void) {
 	play_sound(LOCK_SOUND, (sizeof(LOCK_SOUND) / sizeof(LOCK_SOUND[0])));
 	lcd_print_string("LOCKED");
 	current_state = LOCKED;
@@ -148,9 +148,9 @@ void action_UNLOCKED_LOCK (void) {
 
 /* Return the next event to process. */
 
-enum events get_new_event (void) {
+static enum events get_new_event (void) {
 	uint32_t code = ir_get_code();
-	new_event;
+	enum events new_event;
 	switch (code) {
 		case LOCK_BUTTON : 
 			new_event = LOCK;

@@ -4,13 +4,14 @@
  *  Created on: Jan 28, 2019
  *      Author: Rock Boynton
  * 
- * Implements functions specified in ringbuffer.h to use a ring buffer for the purpose of buffering 
- * asynchronous serial I/O.
+ * Implements functions specified in ringbuffer.h to use a ring buffer for the purpose of storing 
+ * key presses
  */
 
 #include "ringbuffer.h";
+#include <inttypes.h>
 
-void put(RingBuffer* buffer, char element) {
+void put(RingBuffer* buffer, uint32_t element) {
     while (!hasSpace(buffer)) {
     }
     buffer->buffer[buffer->put] = element;
@@ -20,7 +21,6 @@ void put(RingBuffer* buffer, char element) {
     } else {
         buffer->put++;
     }
-    // modulo_inc(buffer->put, BUF_SIZE);
     buffer->used++;
 }
 
@@ -33,7 +33,6 @@ char get(RingBuffer* buffer) {
     } else {
         buffer->get++;
     }
-    // modulo_inc(buffer->get, BUF_SIZE);
     buffer->used--;
     return element;
 }

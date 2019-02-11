@@ -1,8 +1,7 @@
 /*
  * ringbuffer.h 
  * 
- * API for using a ring buffer for the purpose of buffering 
- * asynchronous serial I/O.
+ * API for using a ring buffer for the purpose of storing key presses
  */
 
 #ifndef RINGBUFFER_H_
@@ -14,11 +13,11 @@ typedef struct {
 	unsigned int put;
 	unsigned int get; 
     unsigned int used; // number of elements currently in the buffer 
-	char buffer[BUF_SIZE]; 
+	uint32_t buffer[BUF_SIZE]; 
 } RingBuffer;
 
 // Adds element to buffer.  Will block if there is no space in buffer.
-void put(RingBuffer* buffer, char element);
+void put(RingBuffer* buffer, uint32_t element);
 
 // Gets element from buffer.  Will block if buffer is empty.
 char get(RingBuffer* buffer);
