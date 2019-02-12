@@ -72,7 +72,7 @@ void ir_init() {
     TIM2->PSC = 800; 
     // Auto-reload set as max value of 32 bit number
     TIM2->ARR = 0xFFFFFFFF;
-    
+    TIM2->EGR |= 1; // Propogate new values from shadow registers
     // ????
 
     // Enable Interrupts
