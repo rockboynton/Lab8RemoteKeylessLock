@@ -45,7 +45,7 @@ static void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 };
 
 // File scope helper methods
-static uint32_t ir_get_code_no_block();
+
 
 void ir_init() {
     // Enable GPIOB in RCC_AHB1ENR
@@ -59,6 +59,9 @@ void ir_init() {
     GPIOB->MODER |= (ALTERNATE_FUNCTION << 4); // Set pin 2 to alternate function mode
     GPIOB->AFRL &= ~(0xF << 8); // Clear alternate function bits for pin 2
     GPIOB->AFRL |= (0x2 << 8); // Set alternate function to AF1 (TIM2_CH4)
+
+    // // ! TEMP
+    // GPIOB->MODER &= ~(0b11 << 4); // Clear mode bits for pin 2
 
     /* Configure TIM2 (pg.538) */
     // ?????
@@ -93,12 +96,8 @@ uint32_t ir_get_code() {
         // wait
     }
     code = get(&key_buffer);
-    return code; 
-}
-
-static uint32_t ir_get_code_no_block() {
-    //TODO
-    return 0;
+    // return code; 
+    return GPIOB->IDR;
 }
 
 // Called whenever there is a falling edge event

@@ -20,7 +20,9 @@
 
 // 0 = main program
 // 1 = Speaker Tests
-#define DEBUG 2
+// 2 = IR tests
+// 3 = USART tests
+#define DEBUG 3
 
 // Defines
 #define LOCK_BUTTON 0 // TODO fill this in when value is found
@@ -66,6 +68,8 @@ void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
 };
 
+static char buffer[50];
+
 
 // main
 int main() {
@@ -77,6 +81,7 @@ int main() {
 	key_init();
 	temp_init();
 	speaker_init();
+	ir_init();
 
 	// --------------------Speaker Tests----------------------------
 	while(DEBUG == 1) { // Working
@@ -93,6 +98,14 @@ int main() {
 		delay_1ms(2000);
 		lcd_clear();
 		delay_1ms(2000);
+	}
+	//-------------------------------------------------------------
+
+		// --------------------IR Tests----------------------------
+	while(DEBUG == 3) { // Not yet working 
+		printf("Enter your name: ");
+		scanf("%s", buffer);
+		printf("Your name is %s\n", buffer);
 	}
 	//-------------------------------------------------------------
 

@@ -6,8 +6,8 @@
 
 #include <inttypes.h>
 
-#ifndef RINGBUFFER_H_
-#define RINGBUFFER_H_
+#ifndef USARTt_BUFFER_H_
+#define USART_BUFFER_H_
 
 #define BUF_SIZE 15
 
@@ -15,19 +15,19 @@ typedef struct {
 	unsigned int put;
 	unsigned int get; 
     unsigned int used; // number of elements currently in the buffer 
-	uint32_t buffer[BUF_SIZE]; 
-} RingBuffer;
+	char buffer[BUF_SIZE]; 
+} UsartBuffer;
 
 // Adds element to buffer.  Will block if there is no space in buffer.
-void put(RingBuffer* buffer, uint32_t element);
+void usart_put(UsartBuffer* buffer, char element);
 
 // Gets element from buffer.  Will block if buffer is empty.
-char get(RingBuffer* buffer);
+char usart_get(UsartBuffer* buffer);
 
 // Returns true (non-zero) if there is room for one element in buffer
-int hasSpace(RingBuffer *);
+int usart_hasSpace(UsartBuffer *);
 
 // Return true (non-zero) if there is at least one element in buffer
-int hasElement(RingBuffer *);
+int usart_hasElement(UsartBuffer *);
 
 #endif

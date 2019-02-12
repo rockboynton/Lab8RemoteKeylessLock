@@ -8,11 +8,11 @@
 #include "gpio.h"
 #include <inttypes.h>
 #include <stdio.h>
-#include "ringbuffer.h"
+#include "usart_buffer.h"
 
 static volatile USART_T* USART = 0x40004400;
-static volatile RingBuffer sendBuffer = {0, 0, 0};
-static volatile RingBuffer recieveBuffer = {0, 0, 0};
+static volatile UsartBuffer sendBuffer = {0, 0, 0};
+static volatile UsartBuffer recieveBuffer = {0, 0, 0};
 
 
 void init_usart2(uint32_t baud, uint32_t sysclk){
@@ -48,12 +48,12 @@ void init_usart2(uint32_t baud, uint32_t sysclk){
 
 // Some code for Recieving (get from recieve buffer)
 char usart2_getch() {
-	return get(&recieveBuffer);
+	return usart_get(&recieveBuffer);
 }
 
 // Some code for Transmitting (put in send buffer)
 void usart2_putch(char c){
-	put(&sendBuffer, c);
+	usart_put(&sendBuffer, c);
 	USART->CR1 |= (1<<TXEIE);
 }
 
@@ -61,18 +61,18 @@ void USART2_IRQHandler(void){
 	// ISR to handle RXNE interrupts
 	if ((USART->SR & (1<<RXNE)) == (1<<RXNE)) {
 		char c = USART->DR; // Put data into transmit buffer, sends data
-		put(&sendBuffer, c);
+		usart_put(&sendBuffer, c);
 		if (c == '\r'){  // If character is CR
 			usart2_putch('\n');  // send it
 			c = '\n';   // Return LF. fgets is terminated by LF
 		}
-		put(&recieveBuffer, c);
+		usart_put(&recieveBuffer, c);
 	}
 
 	// ISR to handle TXE interrupts
 	if ((USART->SR & (1<<TXE)) == (1<<TXE)) {
-		if (hasElement(&sendBuffer)) { 
-			USART->DR = get(&sendBuffer); // get data from transmit buffer, sends data
+		if (usart_hasElement(&sendBuffer)) { 
+			USART->DR = usart_get(&sendBuffer); // get data from transmit buffer, sends data
 		} else {
 			USART->CR1 &= ~(1<<TXEIE); // Disable TXE interrupts
 		}
