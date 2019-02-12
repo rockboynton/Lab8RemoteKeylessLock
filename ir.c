@@ -60,29 +60,27 @@ void ir_init() {
     GPIOB->AFRL &= ~(0xF << 8); // Clear alternate function bits for pin 2
     GPIOB->AFRL |= (0x2 << 8); // Set alternate function to AF1 (TIM2_CH4)
 
-    // // ! TEMP
-    // GPIOB->MODER &= ~(0b11 << 4); // Clear mode bits for pin 2
-
     /* Configure TIM2 (pg.538) */
     // ?????
+    // Enable counter, only counter under/overflow generate interrupt, auto-reload preload enabled
+    TIM2->CR1 = 0b10000101;
     // CC4 channel is configured as input, IC4 is mapped on TI4
-    TIM2->CCMR2 = (TIM2->CCMR2 & ~(0b11 << 8)) | (0b01 << 8); 
-    // Falling edge only selected
-    TIM2->CCER |= (1 << 13);
-    // Interrupt request on input capture, channel 4
-    TIM2->DIER |= (1 << 4);
+    TIM2->CCMR2 = (1 << 8); 
+    // Falling edge only selected, capture enabled
+    TIM2->CCER = (0b11 << 12);
+    // Interrupt request on input capture and trigger, channel 4
+    TIM2->DIER = (1 << 6) | (1 << 4) | 1;
     // Prescaler set as 800 for 50us clock tick
     TIM2->PSC = 800; 
     // Auto-reload set as max value of 32 bit number
     TIM2->ARR = 0xFFFFFFFF;
     // Enable capture for channel 4
     TIM2->CCER |= (1 << 12);
-    // Enable counter
-    TIM2->CR1 |= 1;
+    
     // ????
 
     // Enable Interrupts
-    *(NVIC_ISER_0) |= (1 << 30);
+    *(NVIC_ISER_0) |= (1 << 28);
 
     current_state = WAITING_FOR_START;
     num_bits_read = 0;
