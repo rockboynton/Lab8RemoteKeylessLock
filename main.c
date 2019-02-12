@@ -22,7 +22,7 @@
 // 1 = Speaker Tests
 // 2 = IR tests
 // 3 = USART tests
-#define DEBUG 3
+#define DEBUG 2
 
 // Defines
 #define LOCK_BUTTON 0 // TODO fill this in when value is found
@@ -82,6 +82,7 @@ int main() {
 	temp_init();
 	speaker_init();
 	ir_init();
+	printf("booted up\n");
 
 	// --------------------Speaker Tests----------------------------
 	while(DEBUG == 1) { // Working

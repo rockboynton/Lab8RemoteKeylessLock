@@ -7,7 +7,7 @@
  * Implements functions specified in ir.h to use the MSOE dev board infared decoder
  */
 
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -55,10 +55,8 @@ void ir_init() {
 	*(RCC_APB1ENR) |= (1 << TIM2_EN);
 
     // Configure GPIOB pin 2 to alternate function mode (TIM2)
-    GPIOB->MODER &= ~(0b11 << 4); // Clear mode bits for pin 2
-    GPIOB->MODER |= (ALTERNATE_FUNCTION << 4); // Set pin 2 to alternate function mode
-    GPIOB->AFRL &= ~(0xF << 8); // Clear alternate function bits for pin 2
-    GPIOB->AFRL |= (0x2 << 8); // Set alternate function to AF1 (TIM2_CH4)
+    GPIOB->AFRL = (GPIOB->AFRL & ~(0xF << 4)) | (0x1 << 8); // Set alternate function to AF1 (TIM2_CH4)
+    GPIOB->MODER |= (1 << 5); // Set pin 2 to alternate function mode
 
     /* Configure TIM2 (pg.538) */
     // ?????
@@ -74,8 +72,6 @@ void ir_init() {
     TIM2->PSC = 800; 
     // Auto-reload set as max value of 32 bit number
     TIM2->ARR = 0xFFFFFFFF;
-    // Enable capture for channel 4
-    TIM2->CCER |= (1 << 12);
     
     // ????
 
@@ -94,22 +90,26 @@ uint32_t ir_get_code() {
         // wait
     }
     code = get(&key_buffer);
-    // return code; 
-    return GPIOB->IDR;
+    return code;
 }
 
 // Called whenever there is a falling edge event
-TIM2_IRQHandler(void) {
+void TIM2_IRQHandler(void) {
     // pg 367 ref manual
+	printf("in ISR\n");
     state_table [current_state][IRQ] (); /* call the action procedure */
 }
 
 static void action_WAITING_FOR_START_IRQ (void) {
+	// printf("in WAITING_FOR_START_IRQ ISR\n");
+
     last_timestamp = TIM2->CCR4;
     current_state = WAITING_FOR_ENDSTART;
 }
 
 static void action_WAITING_FOR_ENDSTART_IRQ (void) { 
+	// printf("in WAITING_FOR_ENDSTART_IRQ ISR\n");
+
     elapsed_time = TIM2->CCR4 - last_timestamp;
     if (240 < elapsed_time && elapsed_time < 300) {
         last_timestamp = TIM2->CCR4;
@@ -121,6 +121,8 @@ static void action_WAITING_FOR_ENDSTART_IRQ (void) {
 }
 
 static void action_WAITING_FOR_BIT_IRQ (void) {
+	// printf("in WAITING_FOR_BIT_IRQ ISR\n");
+
     elapsed_time = TIM2->CCR4 - last_timestamp;
     if (20 < elapsed_time && elapsed_time < 30) {
         last_timestamp = TIM2->CCR4;
