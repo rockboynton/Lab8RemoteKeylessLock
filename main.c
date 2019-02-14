@@ -59,20 +59,22 @@ static void play_sound(Tone sound[], int length);
 
 /*********************************** States and Events.********************************************/
 static enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
-static enum events { UNLOCK, LOCK, , MAX_EVENTS } new_event;
+static enum events { UNLOCK, LOCK, ENTER_CODE, MAX_EVENTS } new_event;
 
 /********************* Function prototypes for each action procedure.******************************/
 static void action_LOCKED_UNLOCK (void);
 static void action_LOCKED_LOCK (void);
+static void action_LOCKED_ENTER_CODE (void);
 static void action_UNLOCKED_UNCLOCK (void);
 static void action_UNLOCKED_LOCK (void);
+static void action_UNLOCKED_ENTER_CODE (void);
 static enum events get_new_event (void);
 
 /******************************** State/Event lookup table. ***************************************/
 void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
-    { action_LOCKED_UNLOCK, action_LOCKED_LOCK }, /* procedures for state 1 */
-    { action_UNLOCKED_UNCLOCK, action_UNLOCKED_LOCK } /* procedures for state 2 */
+    { action_LOCKED_UNLOCK, action_LOCKED_LOCK, action_LOCKED_ENTER_CODE },/* Locked State */
+    { action_UNLOCKED_UNCLOCK, action_UNLOCKED_LOCK, action_UNLOCKED_ENTER_CODE } /* Unlocked State */
 
 };
 
@@ -157,6 +159,10 @@ static void action_LOCKED_LOCK (void) {
 	action_UNLOCKED_LOCK();
 }
 
+static void action_LOCKED_ENTER_CODE (void) {
+	// TODO
+}
+
 static void action_UNLOCKED_UNCLOCK (void) {
 	action_LOCKED_UNLOCK();
 }
@@ -168,18 +174,33 @@ static void action_UNLOCKED_LOCK (void) {
 	current_state = LOCKED;
 }
 
+static void action_UNLOCKED_ENTER_CODE (void) {
+	// TODO
+}
+
 /***************************** Return the next event to process. **********************************/
 static enum events get_new_event (void) {
-	// uint32_t code = ir_get_code();
 	uint32_t code = ir_get_code();
 	enum events new_event;
 	switch (code) {
-		case BUTTON_1 :
+		case BUTTON_LOCK :
 			new_event = LOCK;
 			break;
-		case BUTTON_2 :
+		case BUTTON_UNLOCK :
 			new_event = UNLOCK;
 			break;
+		case BUTTON_0 :
+		case BUTTON_1 :		
+		case BUTTON_2 :
+		case BUTTON_3 :
+		case BUTTON_4 :
+		case BUTTON_5 :
+		case BUTTON_6 :
+		case BUTTON_7 :
+		case BUTTON_8 :
+		case BUTTON_9 :
+			new_event = ENTER_CODE;
+			
 		default : // INVALID BUTTON
 			new_event = -1;	
 	}
