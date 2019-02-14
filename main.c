@@ -1,7 +1,7 @@
 /*
  * main.c
  *
- * Tests the functionality of UART with interrupts
+ * Program for an IR remote locking system
  * 				
  */
 #include <stdio.h>
@@ -24,9 +24,9 @@
 // 3 = USART tests
 #define DEBUG 0
 
-// Defines
-#define BUTTON_LOCK (uint32_t) 3977404806
-#define BUTTON_UNLOCK (uint32_t) 3960693126
+// ------------------------------------TEAC RC-505 Button codes-------------------------------------
+#define BUTTON_LOCK (uint32_t) 0
+#define BUTTON_UNLOCK (uint32_t) 0
 #define BUTTON_1 (uint32_t) 3977404806
 #define BUTTON_2 (uint32_t) 3960693126
 #define BUTTON_3 (uint32_t) 0
@@ -35,8 +35,10 @@
 #define BUTTON_6 (uint32_t) 0
 #define BUTTON_7 (uint32_t) 0
 #define BUTTON_8 (uint32_t) 0
+// -------------------------------------------------------------------------------------------------
 
-// Constants
+
+// ---------------------------------------Program Tones---------------------------------------------
 static const Tone UNLOCK_SOUND[] = {
 	// {NOTE, DURATION}
 	{A6, S}, 
@@ -48,26 +50,23 @@ static const Tone LOCK_SOUND[] = {
 	// {NOTE, DURATION}
 	{A6, S}, 
 };
-
-
-// Initialize variables to be used 
-
+// -------------------------------------------------------------------------------------------------
 
 // File Scope helper methods
 static void play_sound(Tone sound[], int length);
 
-/* Define the states and events.*/
+/*********************************** Define the states and events.*********************************/
 static enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
 static enum events { UNLOCK, LOCK, MAX_EVENTS } new_event;
 
-/* Provide the fuction prototypes for each action procedure.*/
+/********************* Provide the fuction prototypes for each action procedure.*******************/
 static void action_LOCKED_UNLOCK (void);
 static void action_LOCKED_LOCK (void);
 static void action_UNLOCKED_UNCLOCK (void);
 static void action_UNLOCKED_LOCK (void);
 static enum events get_new_event (void);
 
-/* Define the state/event lookup table. */
+/******************************** Define the state/event lookup table. ****************************/
 
 void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
@@ -76,6 +75,7 @@ void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
 };
 
+// Variables to be used
 static char buffer[50];
 
 
@@ -101,15 +101,13 @@ int main() {
 	//-------------------------------------------------------------
 
 	// --------------------IR Tests----------------------------
-	while(DEBUG == 2) { // Not yet working 
+	while(DEBUG == 2) { // Working
 		lcd_print_num(ir_get_code());
-		delay_1ms(2000);
-		lcd_clear();
 	}
 	//-------------------------------------------------------------
 
 		// --------------------IR Tests----------------------------
-	while(DEBUG == 3) { // Not yet working 
+	while(DEBUG == 3) { // Not tested
 		printf("Enter your name: ");
 		scanf("%s", buffer);
 		printf("Your name is %s\n", buffer);
@@ -120,13 +118,13 @@ int main() {
 	// Main program 
 	// Never return
 	while (1) {
-		new_event = get_new_event (); /* get the next event to process */
+		/* get the next event to process */
+		new_event = get_new_event (); 
 
-    	if (((new_event >= 0) && (new_event < MAX_EVENTS))
+    	if (((new_event >= 0) && (new_event < MAX_EVENTS)) 
 		&& ((current_state >= 0) && (current_state < MAX_STATES))) {
-
-        	state_table [current_state][new_event] (); /* call the action procedure */
-
+			/* call the action procedure */
+        	state_table [current_state][new_event] (); 
     	} else {
         	/* invalid event/state - ignore */
     	}
@@ -141,10 +139,9 @@ static void play_sound(Tone sound[], int length) {
 	}
 }
 
-// --------------------------------------------------------------------------------
-/* In an action procedure, you do whatever processing is required for the
-particular event in the particular state. */
-
+/***************************************************************************************************
+ In an action procedure, you do whatever processing is required for the particular event in the particular state. 
+ **************************************************************************************************/
 static void action_LOCKED_UNLOCK (void) {
 	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
 	lcd_clear();
@@ -166,10 +163,8 @@ static void action_UNLOCKED_LOCK (void) {
 	lcd_print_string("LOCKED");
 	current_state = LOCKED;
 }
-// --------------------------------------------------------------------------------
 
-/* Return the next event to process. */
-
+/***************************** Return the next event to process. **********************************/
 static enum events get_new_event (void) {
 	// uint32_t code = ir_get_code();
 	uint32_t code = ir_get_code();
@@ -186,4 +181,3 @@ static enum events get_new_event (void) {
 	}
     return new_event;
 }
-

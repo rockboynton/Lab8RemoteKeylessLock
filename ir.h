@@ -23,5 +23,4 @@ void ir_init();
  */
 uint32_t ir_get_code();
 
-
 #endif
