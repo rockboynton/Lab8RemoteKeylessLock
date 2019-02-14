@@ -24,10 +24,10 @@ void put(RingBuffer* buffer, uint32_t element) {
     buffer->used++;
 }
 
-char get(RingBuffer* buffer) {
+uint32_t get(RingBuffer* buffer) {
     while (!hasElement(buffer)) {
     }
-    char element = buffer->buffer[buffer->get];
+    uint32_t element = buffer->buffer[buffer->get];
     if (buffer->get >= BUF_SIZE) {
         buffer->get = 0;
     } else {

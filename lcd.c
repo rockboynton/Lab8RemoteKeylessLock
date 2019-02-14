@@ -75,7 +75,7 @@ uint8_t lcd_print_string(char *str_ptr) {
 
 uint32_t lcd_print_num(uint32_t num) {
     uint8_t numString[2];
-    sprintf(numString, "%d", num);
+    sprintf(numString, "%u", num);
 	return lcd_print_string(numString);
 }
 

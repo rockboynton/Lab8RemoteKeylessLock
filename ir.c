@@ -55,19 +55,25 @@ void ir_init() {
 	*(RCC_APB1ENR) |= (1 << TIM2_EN);
 
     // Configure GPIOB pin 2 to alternate function mode (TIM2)
-    GPIOB->AFRL = (GPIOB->AFRL & ~(0xF << 4)) | (0x1 << 8); // Set alternate function to AF1 (TIM2_CH4)
-    GPIOB->MODER |= (1 << 5); // Set pin 2 to alternate function mode
+    GPIOB->AFRL = (GPIOB->AFRL & ~(0xF << 8)) | (0b1 << 8); // Set alternate function to AF1 (TIM2_CH4)
+    GPIOB->MODER &= ~(0b11 << 4);
+    GPIOB->MODER |= (0b10 << 4); // Set pin 2 to alternate function mode
 
     /* Configure TIM2 (pg.538) */
     // ?????
-    // Enable counter, only counter under/overflow generate interrupt, auto-reload preload enabled
-    TIM2->CR1 = 0b10000101;
-    // CC4 channel is configured as input, IC4 is mapped on TI4
-    TIM2->CCMR2 = (1 << 8); 
-    // Falling edge only selected, capture enabled
-    TIM2->CCER = (0b11 << 12);
-    // Interrupt request on input capture and trigger, channel 4
-    TIM2->DIER = (1 << 6) | (1 << 4) | 1;
+    // 1. CC4 channel is configured as input, IC4 is mapped on TI4
+    TIM2->CCMR2 = (TIM2->CCMR2 & ~(0b11 << 8)) | (0b01 << 8); 
+    // 2. Configure filter (2)
+    TIM2->CCMR2 = (TIM2->CCMR2 & ~(0xF << 12)) | (0b0010 << 12);
+    // 3. Falling edge only selected
+    TIM2->CCER = (TIM2->CCER & ~(0b111 << 13)) | (0b001 << 13);
+    // 4. No input capture prescaler
+    TIM2->CCMR2 = (TIM2->CCMR2 & ~(0b11 << 10));
+    // 5. Enable capture
+    TIM2->CCER |= (0b1 << 12);
+    // 6. Interrupt request on input capture and trigger, channel 4
+    TIM2->DIER = (1 << 4);
+
     // Prescaler set as 800 for 50us clock tick
     TIM2->PSC = 800; 
     // Auto-reload set as max value of 32 bit number
@@ -84,32 +90,30 @@ void ir_init() {
 }
 
 uint32_t ir_get_code() {
+    // Enable counter, only counter under/overflow generate interrupt, auto-reload preload enabled
+    TIM2->CR1 = 0b10000101;
     uint32_t code = 0;
     // Wait for key press
     while (!hasElement(&key_buffer)) {
         // wait
     }
     code = get(&key_buffer);
+    TIM2->CR1 &= 0x0; // disable counter
     return code;
 }
 
 // Called whenever there is a falling edge event
 void TIM2_IRQHandler(void) {
     // pg 367 ref manual
-	printf("in ISR\n");
     state_table [current_state][IRQ] (); /* call the action procedure */
 }
 
 static void action_WAITING_FOR_START_IRQ (void) {
-	// printf("in WAITING_FOR_START_IRQ ISR\n");
-
     last_timestamp = TIM2->CCR4;
     current_state = WAITING_FOR_ENDSTART;
 }
 
 static void action_WAITING_FOR_ENDSTART_IRQ (void) { 
-	// printf("in WAITING_FOR_ENDSTART_IRQ ISR\n");
-
     elapsed_time = TIM2->CCR4 - last_timestamp;
     if (240 < elapsed_time && elapsed_time < 300) {
         last_timestamp = TIM2->CCR4;
@@ -121,14 +125,13 @@ static void action_WAITING_FOR_ENDSTART_IRQ (void) {
 }
 
 static void action_WAITING_FOR_BIT_IRQ (void) {
-	// printf("in WAITING_FOR_BIT_IRQ ISR\n");
-
     elapsed_time = TIM2->CCR4 - last_timestamp;
     if (20 < elapsed_time && elapsed_time < 30) {
         last_timestamp = TIM2->CCR4;
         current_key &= ~(1 << num_bits_read); // bit was a 0
         num_bits_read++;
     } else if (30 < elapsed_time && elapsed_time < 60) {
+    	last_timestamp = TIM2->CCR4;
         current_key |= (1 << num_bits_read); // bit was a 1
         num_bits_read++;
     } else {
@@ -137,9 +140,11 @@ static void action_WAITING_FOR_BIT_IRQ (void) {
         num_bits_read = 0;
     }
 
-    if (num_bits_read > 32) {
+    if (num_bits_read > 31) {
+    	last_timestamp = TIM2->CCR4; // clears flag
         put(&key_buffer, current_key);
         num_bits_read = 0;
         current_state = WAITING_FOR_START;
+        current_key = 0;
     }
 }

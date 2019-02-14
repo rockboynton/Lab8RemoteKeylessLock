@@ -9,7 +9,7 @@
 #ifndef RINGBUFFER_H_
 #define RINGBUFFER_H_
 
-#define BUF_SIZE 15
+#define BUF_SIZE 5
 
 typedef struct {
 	unsigned int put;
@@ -22,7 +22,7 @@ typedef struct {
 void put(RingBuffer* buffer, uint32_t element);
 
 // Gets element from buffer.  Will block if buffer is empty.
-char get(RingBuffer* buffer);
+uint32_t get(RingBuffer* buffer);
 
 // Returns true (non-zero) if there is room for one element in buffer
 int hasSpace(RingBuffer *);

@@ -120,10 +120,12 @@ typedef struct {
     uint32_t CNT;
     uint32_t PSC;
     uint32_t ARR;
+	uint32_t RESERVED1; // reserved register
     uint32_t CCR1;
     uint32_t CCR2;
     uint32_t CCR3;
     uint32_t CCR4;
+	uint32_t RESERVED2; // reserved register
     uint32_t DCR;
     uint32_t DMAR;
     uint32_t OR2;

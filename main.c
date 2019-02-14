@@ -22,11 +22,19 @@
 // 1 = Speaker Tests
 // 2 = IR tests
 // 3 = USART tests
-#define DEBUG 2
+#define DEBUG 0
 
 // Defines
-#define LOCK_BUTTON 0 // TODO fill this in when value is found
-#define UNLOCK_BUTTON 1 // TODO fill this in when value is found
+#define BUTTON_LOCK (uint32_t) 3977404806
+#define BUTTON_UNLOCK (uint32_t) 3960693126
+#define BUTTON_1 (uint32_t) 3977404806
+#define BUTTON_2 (uint32_t) 3960693126
+#define BUTTON_3 (uint32_t) 0
+#define BUTTON_4 (uint32_t) 0
+#define BUTTON_5 (uint32_t) 0
+#define BUTTON_6 (uint32_t) 0
+#define BUTTON_7 (uint32_t) 0
+#define BUTTON_8 (uint32_t) 0
 
 // Constants
 static const Tone UNLOCK_SOUND[] = {
@@ -82,7 +90,6 @@ int main() {
 	temp_init();
 	speaker_init();
 	ir_init();
-	printf("booted up\n");
 
 	// --------------------Speaker Tests----------------------------
 	while(DEBUG == 1) { // Working
@@ -98,7 +105,6 @@ int main() {
 		lcd_print_num(ir_get_code());
 		delay_1ms(2000);
 		lcd_clear();
-		delay_1ms(2000);
 	}
 	//-------------------------------------------------------------
 
@@ -141,6 +147,7 @@ particular event in the particular state. */
 
 static void action_LOCKED_UNLOCK (void) {
 	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
+	lcd_clear();
 	lcd_print_string("UNLOCKED");
 	current_state = UNLOCKED;
 }
@@ -155,6 +162,7 @@ static void action_UNLOCKED_UNCLOCK (void) {
 
 static void action_UNLOCKED_LOCK (void) {
 	play_sound(LOCK_SOUND, (sizeof(LOCK_SOUND) / sizeof(LOCK_SOUND[0])));
+	lcd_clear();
 	lcd_print_string("LOCKED");
 	current_state = LOCKED;
 }
@@ -163,13 +171,14 @@ static void action_UNLOCKED_LOCK (void) {
 /* Return the next event to process. */
 
 static enum events get_new_event (void) {
+	// uint32_t code = ir_get_code();
 	uint32_t code = ir_get_code();
 	enum events new_event;
 	switch (code) {
-		case LOCK_BUTTON : 
+		case BUTTON_1 :
 			new_event = LOCK;
 			break;
-		case UNLOCK_BUTTON : 
+		case BUTTON_2 :
 			new_event = UNLOCK;
 			break;
 		default : // INVALID BUTTON
