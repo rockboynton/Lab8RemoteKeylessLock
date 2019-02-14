@@ -25,16 +25,18 @@
 #define DEBUG 0
 
 // ------------------------------------TEAC RC-505 Button codes-------------------------------------
-#define BUTTON_LOCK (uint32_t) 0
-#define BUTTON_UNLOCK (uint32_t) 0
+#define BUTTON_LOCK (uint32_t) 4177944966 // shuffle key
+#define BUTTON_UNLOCK (uint32_t) 4111098246 // time
 #define BUTTON_1 (uint32_t) 3977404806
 #define BUTTON_2 (uint32_t) 3960693126
-#define BUTTON_3 (uint32_t) 0
-#define BUTTON_4 (uint32_t) 0
-#define BUTTON_5 (uint32_t) 0
-#define BUTTON_6 (uint32_t) 0
-#define BUTTON_7 (uint32_t) 0
-#define BUTTON_8 (uint32_t) 0
+#define BUTTON_3 (uint32_t) 3994116486
+#define BUTTON_4 (uint32_t) 4010828166
+#define BUTTON_5 (uint32_t) 4027539846
+#define BUTTON_6 (uint32_t) 3877134726
+#define BUTTON_7 (uint32_t) 3893846406
+#define BUTTON_8 (uint32_t) 3943981446
+#define BUTTON_9 (uint32_t) 3927269766
+#define BUTTON_0 (uint32_t) 3910558086
 // -------------------------------------------------------------------------------------------------
 
 
@@ -102,7 +104,7 @@ int main() {
 
 	// --------------------IR Tests----------------------------
 	while(DEBUG == 2) { // Working
-		lcd_print_num(ir_get_code());
+		uint32_t key_code = ir_get_code();
 	}
 	//-------------------------------------------------------------
 
