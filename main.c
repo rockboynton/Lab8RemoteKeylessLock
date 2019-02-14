@@ -57,19 +57,18 @@ static const Tone LOCK_SOUND[] = {
 // File Scope helper methods
 static void play_sound(Tone sound[], int length);
 
-/*********************************** Define the states and events.*********************************/
+/*********************************** States and Events.********************************************/
 static enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
-static enum events { UNLOCK, LOCK, MAX_EVENTS } new_event;
+static enum events { UNLOCK, LOCK, , MAX_EVENTS } new_event;
 
-/********************* Provide the fuction prototypes for each action procedure.*******************/
+/********************* Function prototypes for each action procedure.******************************/
 static void action_LOCKED_UNLOCK (void);
 static void action_LOCKED_LOCK (void);
 static void action_UNLOCKED_UNCLOCK (void);
 static void action_UNLOCKED_LOCK (void);
 static enum events get_new_event (void);
 
-/******************************** Define the state/event lookup table. ****************************/
-
+/******************************** State/Event lookup table. ***************************************/
 void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
     { action_LOCKED_UNLOCK, action_LOCKED_LOCK }, /* procedures for state 1 */
@@ -77,8 +76,13 @@ void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
 };
 
+// Constants to be used 
+#define MAX_SIZE 6
+#define MIN_SIZE 4
+
 // Variables to be used
 static char buffer[50];
+static uint32_t code_buffer[];
 
 
 // main
@@ -141,9 +145,7 @@ static void play_sound(Tone sound[], int length) {
 	}
 }
 
-/***************************************************************************************************
- In an action procedure, you do whatever processing is required for the particular event in the particular state. 
- **************************************************************************************************/
+/************************************* Action Procedures ******************************************/
 static void action_LOCKED_UNLOCK (void) {
 	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
 	lcd_clear();

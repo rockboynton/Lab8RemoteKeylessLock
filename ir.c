@@ -24,18 +24,18 @@ static uint8_t num_bits_read;
 static RingBuffer key_buffer = {0, 0, 0};
 static uint32_t current_key;
 
-/* States and Events.*/
+/*********************************** States and Events.********************************************/
 static enum states { 
     WAITING_FOR_START, WAITING_FOR_ENDSTART, WAITING_FOR_BIT, MAX_STATES 
     } current_state;
 static enum events { IRQ, MAX_EVENTS } new_event;
 
-/* Fucntion prototypes for each action procedure.*/
+/********************* Function prototypes for each action procedure.******************************/
 static void action_WAITING_FOR_START_IRQ (void);
 static void action_WAITING_FOR_ENDSTART_IRQ (void);
 static void action_WAITING_FOR_BIT_IRQ (void);
 
-/* State/Event lookup table. */
+/******************************** State/Event lookup table. ***************************************/
 static void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
     action_WAITING_FOR_START_IRQ, 
@@ -104,6 +104,8 @@ void TIM2_IRQHandler(void) {
     // Call the action procedure 
     state_table [current_state][IRQ] (); 
 }
+
+/************************************* Action Procedures ******************************************/
 
 static void action_WAITING_FOR_START_IRQ (void) {
     last_timestamp = TIM2->CCR4;
