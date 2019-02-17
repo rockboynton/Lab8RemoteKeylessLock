@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "uart_driver.h"
 #include "led.h"
 #include "lcd.h"
@@ -59,24 +60,26 @@ static void play_sound(Tone sound[], int length);
 
 /*********************************** States and Events.********************************************/
 static enum states { LOCKED, UNLOCKED, MAX_STATES } current_state;
-static enum events { UNLOCK, LOCK, ENTER_CODE, MAX_EVENTS } new_event;
+static enum events { UNLOCK, LOCK, ENTER_DIGIT, MAX_EVENTS } new_event;
 
 /********************* Function prototypes for each action procedure.******************************/
 static void action_LOCKED_UNLOCK (void);
 static void action_LOCKED_LOCK (void);
-static void action_LOCKED_ENTER_CODE (void);
+static void action_LOCKED_ENTER_DIGIT (void);
 static void action_UNLOCKED_UNCLOCK (void);
 static void action_UNLOCKED_LOCK (void);
-static void action_UNLOCKED_ENTER_CODE (void);
+static void action_UNLOCKED_ENTER_DIGIT (void);
 static enum events get_new_event (void);
 
 /******************************** State/Event lookup table. ***************************************/
 void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
-    { action_LOCKED_UNLOCK, action_LOCKED_LOCK, action_LOCKED_ENTER_CODE },/* Locked State */
-    { action_UNLOCKED_UNCLOCK, action_UNLOCKED_LOCK, action_UNLOCKED_ENTER_CODE } /* Unlocked State */
+    { action_LOCKED_UNLOCK, action_LOCKED_LOCK, action_LOCKED_ENTER_DIGIT },/* Locked State */
+    { action_UNLOCKED_UNCLOCK, action_UNLOCKED_LOCK, action_UNLOCKED_ENTER_DIGIT } /* Unlocked State */
 
 };
+
+const char* STATE_NAMES[] = {"LOCKED", "UNLOCKED"};
 
 // Constants to be used 
 #define MAX_SIZE 6
@@ -84,8 +87,12 @@ void (*const state_table [MAX_STATES][MAX_EVENTS]) (void) = {
 
 // Variables to be used
 static char buffer[50];
-static uint32_t code_buffer[];
+static uint32_t code_buffer[MAX_SIZE];
+static uint32_t entry_buffer[MAX_SIZE];
+static uint32_t current_code;
+static uint8_t current_index = 0;
 
+static void display_code(uint32_t code);
 
 // main
 int main() {
@@ -122,7 +129,8 @@ int main() {
 	}
 	//-------------------------------------------------------------
 
-
+	current_state = UNLOCKED;
+	lcd_print_string("UNLOCKED");
 	// Main program 
 	// Never return
 	while (1) {
@@ -134,7 +142,10 @@ int main() {
 			/* call the action procedure */
         	state_table [current_state][new_event] (); 
     	} else {
-        	/* invalid event/state - ignore */
+        	/* invalid event/state */
+			// lcd_clear();
+			// lcd_print_string("Error");
+			// current_index = 0;
     	}
 	}
 	// Never returns
@@ -149,40 +160,93 @@ static void play_sound(Tone sound[], int length) {
 
 /************************************* Action Procedures ******************************************/
 static void action_LOCKED_UNLOCK (void) {
-	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
-	lcd_clear();
-	lcd_print_string("UNLOCKED");
-	current_state = UNLOCKED;
+	if (memcmp(code_buffer, entry_buffer, sizeof(code_buffer)) == 0) { // code match
+		play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
+		lcd_clear();
+		lcd_print_string("UNLOCKED");
+		current_state = UNLOCKED;
+	} else {
+		lcd_clear();
+		lcd_print_string("Invalid code");
+		delay_1ms(1000);
+		lcd_clear();
+		lcd_print_string("LOCKED");
+	}
+	memset(entry_buffer, 0, sizeof(entry_buffer)); // clear entry buffer
+	current_index = 0;
 }
 
 static void action_LOCKED_LOCK (void) {
-	action_UNLOCKED_LOCK();
-}
-
-static void action_LOCKED_ENTER_CODE (void) {
-	// TODO
-}
-
-static void action_UNLOCKED_UNCLOCK (void) {
-	action_LOCKED_UNLOCK();
-}
-
-static void action_UNLOCKED_LOCK (void) {
+	current_index = 0;
+	memset(entry_buffer, 0, sizeof(entry_buffer)); // clear entry buffer
 	play_sound(LOCK_SOUND, (sizeof(LOCK_SOUND) / sizeof(LOCK_SOUND[0])));
 	lcd_clear();
 	lcd_print_string("LOCKED");
 	current_state = LOCKED;
 }
 
-static void action_UNLOCKED_ENTER_CODE (void) {
-	// TODO
+static void action_LOCKED_ENTER_DIGIT (void) {
+	if (current_index == MAX_SIZE) {
+		memset(entry_buffer, 0, sizeof(entry_buffer)); // clear entry buffer
+		lcd_clear();
+		lcd_print_string("Incorrect code");
+		delay_1ms(1000);
+		lcd_clear();
+		lcd_print_string("LOCKED");
+		current_index = 0;
+	} else {
+		if (current_index == 0) {
+			lcd_clear();
+		}
+		entry_buffer[current_index] = current_code;
+		current_index++;
+		display_code(current_code);
+	}
+}
+
+static void action_UNLOCKED_UNCLOCK (void) {
+	play_sound(UNLOCK_SOUND, (sizeof(UNLOCK_SOUND) / sizeof(UNLOCK_SOUND[0])));
+	lcd_clear();
+	lcd_print_string("UNLOCKED");
+	current_state = UNLOCKED;
+	current_index = 0;
+}
+
+static void action_UNLOCKED_LOCK (void) {
+	if (MIN_SIZE <= current_index && current_index <= MAX_SIZE) {
+		action_LOCKED_LOCK();
+	} else {
+		lcd_clear();
+		lcd_print_string("Invalid code");
+		delay_1ms(1000);
+		lcd_clear();
+		lcd_print_string("UNLOCKED");
+	}
+}
+
+static void action_UNLOCKED_ENTER_DIGIT (void) {
+	if (current_index == MAX_SIZE) {
+		memset(code_buffer, 0, sizeof(code_buffer)); // clear code buffer
+		lcd_clear();
+		lcd_print_string("Invalid code");
+		delay_1ms(1000);
+		lcd_clear();
+		lcd_print_string("UNLOCKED");
+		current_index = 0;
+	} else {
+		if (current_index == 0) {
+			lcd_clear();
+		}
+		code_buffer[current_index] = current_code;
+		current_index++;
+		display_code(current_code);		
+	}
 }
 
 /***************************** Return the next event to process. **********************************/
 static enum events get_new_event (void) {
-	uint32_t code = ir_get_code();
-	enum events new_event;
-	switch (code) {
+	current_code = ir_get_code();
+	switch (current_code) {
 		case BUTTON_LOCK :
 			new_event = LOCK;
 			break;
@@ -199,10 +263,50 @@ static enum events get_new_event (void) {
 		case BUTTON_7 :
 		case BUTTON_8 :
 		case BUTTON_9 :
-			new_event = ENTER_CODE;
-			
+			new_event = ENTER_DIGIT;
+			break;
 		default : // INVALID BUTTON
 			new_event = -1;	
 	}
     return new_event;
+}
+
+static void display_code(uint32_t code) {
+	uint32_t num;
+	switch (code) {
+		case BUTTON_0 :
+			num = 0;
+			break;
+		case BUTTON_1 :	
+			num = 1;
+			break;	
+		case BUTTON_2 :
+			num = 2;
+			break;
+		case BUTTON_3 :
+			num = 3;
+			break;
+		case BUTTON_4 :
+			num = 4;
+			break;
+		case BUTTON_5 :
+			num = 5;
+			break;
+		case BUTTON_6 :
+			num = 6;
+			break;
+		case BUTTON_7 :
+			num = 7;
+			break;
+		case BUTTON_8 :
+			num = 8;
+			break;
+		case BUTTON_9 :
+			num = 9;
+			break;
+		default: 
+			num = 9999;
+			break;
+	}
+	lcd_print_num(num);
 }

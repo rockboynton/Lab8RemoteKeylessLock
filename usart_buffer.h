@@ -30,4 +30,7 @@ int usart_hasSpace(UsartBuffer *);
 // Return true (non-zero) if there is at least one element in buffer
 int usart_hasElement(UsartBuffer *);
 
+// Return 1 for same, 0 for mismatch
+int usart_cmp(UsartBuffer* buffer1, UsartBuffer* buffer2);
+
 #endif

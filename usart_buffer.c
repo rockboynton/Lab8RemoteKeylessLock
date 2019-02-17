@@ -44,3 +44,7 @@ int usart_hasSpace(UsartBuffer* buffer) {
 int usart_hasElement(UsartBuffer* buffer) {
     return buffer->used > 0;
 }
+
+int usart_cmp(UsartBuffer* buffer1, UsartBuffer* buffer2) {
+    return memcmp(buffer1, buffer2, sizeof(buffer1));
+}
